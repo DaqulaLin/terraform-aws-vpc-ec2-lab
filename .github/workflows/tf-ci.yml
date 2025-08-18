@@ -40,9 +40,12 @@ jobs:
           terraform init -backend=false
           terraform validate
 
-      - name: Terraform plan (dev, no backend)
+      - name: Terraform plan (dev, no backend, no creds)
         run: |
-          terraform plan -lock=false -var-file=envs/dev.tfvars
+          terraform plan -lock=false -refresh=false 
+          -var-file=envs/dev.tfvars
+          -var='ci_no_aws=true'
+          -var='ami_id=ami-1234567890abcdef0'
 
   main_plan:
     name: Main init (backend) + plan
