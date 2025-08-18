@@ -1,0 +1,70 @@
+name: terraform-ci
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+env:
+  TF_INPUT: "false"
+  TF_IN_AUTOMATION: "1"
+  AWS_REGION: us-east-1
+
+jobs:
+  pr_plan:
+    name: PR fmt/validate/plan (no backend)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2   # 与你本地一致，避免版本差异
+
+      - name: Cache terraform dirs
+        uses: actions/cache@v4
+        with:
+          path: |
+            .terraform
+            .terraform.lock.hcl
+          key: ${{ runner.os }}-tf-${{ hashFiles('**/*.tf', '**/*.lock.hcl') }}
+
+      - name: Terraform fmt & validate (no backend)
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false
+          terraform validate
+
+      - name: Terraform plan (dev, no backend)
+        run: |
+          terraform plan -lock=false -var-file=envs/dev.tfvars
+
+  main_plan:
+    name: Main init (backend) + plan
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2
+
+      - name: Cache terraform dirs
+        uses: actions/cache@v4
+        with:
+          path: |
+            .terraform
+            .terraform.lock.hcl
+          key: ${{ runner.os }}-tf-${{ hashFiles('**/*.tf', '**/*.lock.hcl') }}
+
+      - name: Terraform init (with backend)
+        run: terraform init -backend-config=backend.hcl
+
+      - name: Terraform plan (dev)
+        run: terraform plan -var-file=envs/dev.tfvars
