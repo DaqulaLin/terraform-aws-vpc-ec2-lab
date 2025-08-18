@@ -42,9 +42,9 @@ jobs:
 
       - name: Terraform plan (dev, no backend, no creds)
         run: |
-          terraform plan -lock=false -refresh=false 
-          -var-file=envs/dev.tfvars
-          -var='ci_no_aws=true'
+          terraform plan -lock=false -refresh=false \
+          -var-file=envs/dev.tfvars \
+          -var='ci_no_aws=true' \
           -var='ami_id=ami-1234567890abcdef0'
 
   main_plan:
