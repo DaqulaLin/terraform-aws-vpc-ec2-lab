@@ -61,6 +61,9 @@ data "aws_iam_policy_document" "plan_policy" {
       "ec2:DescribeInstances",
       "ec2:DescribeVpcs",
       "ec2:DescribeSubnets",
+      "ec2:DescribeRouteTables",
+      "ec2:DescribeInternetGateways",
+      "ec2:DescribeNatGateways",
       "ec2:DescribeSecurityGroups"
     ]
     resources = ["*"]
