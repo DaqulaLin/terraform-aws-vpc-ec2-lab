@@ -41,7 +41,7 @@ jobs:
 
       - name: Terraform plan (dev, no lock)
         run: |
-          terraform plan -lock=false -var-file=envs/dev.tfvars
+          terraform plan -lock=false -var-file=envs/dev.tfvars -detailed-exitcode -no-color || test $? -eq 2
 
   main_pipeline:
     name: Main init + plan (OIDC)
