@@ -7,6 +7,7 @@ on:
     branches: [ main ]
 
 permissions:
+  id-token: write   # 关键：允许工作流通过 OIDC 换取临时凭证
   contents: read
 
 env:
@@ -16,7 +17,7 @@ env:
 
 jobs:
   pr_plan:
-    name: PR fmt/validate/plan (no backend)
+    name: PR fmt/validate/plan (OIDC)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -26,26 +27,24 @@ jobs:
         with:
           terraform_version: 1.12.2   # 与你本地一致，避免版本差异
 
-      - name: Cache terraform dirs
-        uses: actions/cache@v4
+      - name: Configure AWS via OIDC (plan)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          path: |
-            .terraform
-            .terraform.lock.hcl
-          key: ${{ runner.os }}-tf-${{ hashFiles('**/*.tf', '**/*.lock.hcl') }}
+          role-to-assume: arn:aws:iam::160885250897:role/gha-oidc-tf-plan
+          aws-region: us-east-1
 
       - name: Terraform fmt & validate (no backend)
         run: |
           terraform fmt -check -recursive
-          terraform init -backend=false
+          terraform init -backend-config=backend.hcl
           terraform validate
 
-      - name: Terraform plan (dev, no backend)
+      - name: Terraform plan (dev, no lock)
         run: |
           terraform plan -lock=false -var-file=envs/dev.tfvars
 
-  main_plan:
-    name: Main init (backend) + plan
+  main_pipeline:
+    name: Main init + plan (OIDC)
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -55,16 +54,18 @@ jobs:
         with:
           terraform_version: 1.12.2
 
-      - name: Cache terraform dirs
-        uses: actions/cache@v4
+      - name: Configure AWS via OIDC (apply)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          path: |
-            .terraform
-            .terraform.lock.hcl
-          key: ${{ runner.os }}-tf-${{ hashFiles('**/*.tf', '**/*.lock.hcl') }}
+          role-to-assume: arn:aws:iam::160885250897:role/gha-oidc-tf-apply
+          aws-region: us-east-1
 
-      - name: Terraform init (with backend)
+      - name: Terraform init (backend)
         run: terraform init -backend-config=backend.hcl
 
       - name: Terraform plan (dev)
         run: terraform plan -var-file=envs/dev.tfvars
+
+    # 稳定后解开自动部署（可选）
+    # - name: Terraform apply (dev)
+    # run: terraform apply -auto-approve -var-file=envs/dev.tfvars 

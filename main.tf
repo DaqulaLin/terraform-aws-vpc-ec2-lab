@@ -16,3 +16,13 @@ module "ec2" {
   instance_type = var.ec2_instance_type
   ami_id        = var.ami_id
 }
+
+
+module "iam_gha_oidc" {
+  source            = "./modules/iam"
+  github_org        = "DaqulaLin"
+  github_repo       = "terraform-aws-vpc-ec2-lab"
+  region            = var.region
+  state_bucket_name = "tfstate-160885250897-dev-1833551180"
+  lock_table_name   = "tf-locks"
+}
