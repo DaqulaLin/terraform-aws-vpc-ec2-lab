@@ -53,6 +53,21 @@ data "aws_iam_policy_document" "plan_policy" {
       "arn:aws:s3:::${var.state_bucket_name}/*"
     ]
   }
+  statement {
+    sid    = "EC2Describe"
+    effect = "Allow"
+    actions = [
+      "ec2:DescribeImages",
+      "ec2:DescribeInstances",
+      "ec2:DescribeVpcs",
+      "ec2:DescribeSubnets",
+      "ec2:DescribeRouteTables",
+      "ec2:DescribeInternetGateways",
+      "ec2:DescribeNatGateways",
+      "ec2:DescribeSecurityGroups"
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "tf_plan" {

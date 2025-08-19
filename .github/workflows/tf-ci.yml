@@ -39,9 +39,24 @@ jobs:
           terraform init -backend-config=backend.hcl
           terraform validate
 
-      - name: Terraform plan (dev, no lock)
+      - name: Terraform plan (dev, no lock, exitcode-aware)
+        shell: bash
         run: |
-          terraform plan -lock=false -var-file=envs/dev.tfvars
+          set +e
+          terraform plan \
+            -lock=false \
+            -var-file=envs/dev.tfvars \
+            -detailed-exitcode \
+            -no-color
+          code=$?
+          echo "Terraform exit code: $code"
+          # 1 = 真错误 -> 失败;0 或 2 = 允许通过
+          if [ $code -eq 1 ]; then
+            exit 1
+          else
+            exit 0
+          fi
+
 
   main_pipeline:
     name: Main init + plan (OIDC)
