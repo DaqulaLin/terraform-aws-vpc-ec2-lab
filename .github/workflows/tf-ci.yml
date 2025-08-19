@@ -41,8 +41,14 @@ jobs:
 
       - name: Terraform plan (dev, no lock)
         run: |
-          terraform plan -lock=false -var-file=envs/dev.tfvars -detailed-exitcode -no-color || test $? -eq 2
-
+          terraform plan -lock=false -var-file=envs/dev.tfvars -detailed-exitcode -no-color
+          exit_code=$?
+          if [ $exit_code -eq 1 ]; then
+            exit 1 #real error
+          else
+            exit 0 #no changes or success
+          fi
+          
   main_pipeline:
     name: Main init + plan (OIDC)
     if: github.event_name == 'push'
