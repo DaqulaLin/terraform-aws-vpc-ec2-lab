@@ -46,14 +46,18 @@ jobs:
       - name: Install tfsec (binary)
         shell: bash
         run: |
-          curl -fsSL \
-            https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-linux-amd64 \
+          set -euo pipefail
+          os="$(uname -s | tr '[:upper:]' '[:lower:]')"   # linux
+          arch="$(dpkg --print-architecture)"             # amd64 / arm64
+          sudo curl -fsSL \
+            "https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-${os}-${arch}" \
             -o /usr/local/bin/tfsec
-          chmod +x /usr/local/bin/tfsec
+          sudo chmod +x /usr/local/bin/tfsec
           tfsec --version
 
       - name: Run tfsec (fail on HIGH)
-        run: tfsec --no-color --minimum-severity HIGH  .
+        run: tfsec --no-color --minimum-severity HIGH .
+
 
 
 
