@@ -27,6 +27,41 @@ jobs:
         with:
           terraform_version: 1.12.2   # 与你本地一致，避免版本差异
 
+      # ---------- 质量 / 安全 ----------
+      - name: Install TFLint
+        run: |
+          curl -sSL https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh \
+            | bash -s -- -b /usr/local/bin
+          tflint --init
+
+      - name: Run TFLint (warnings not failing)
+        shell: bash
+        run: |
+          set +e
+          tflint -f compact
+          code=$?
+          # 0=ok, 2=warnings => 不阻塞 PR
+          if [ $code -eq 0 ] || [ $code -eq 2 ]; then exit 0; else exit $code; fi
+
+      - name: Install tfsec (binary)
+        shell: bash
+        run: |
+          set -euo pipefail
+          os="$(uname -s | tr '[:upper:]' '[:lower:]')"   # linux
+          arch="$(dpkg --print-architecture)"             # amd64 / arm64
+          sudo curl -fsSL \
+            "https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-${os}-${arch}" \
+            -o /usr/local/bin/tfsec
+          sudo chmod +x /usr/local/bin/tfsec
+          tfsec --version
+
+      - name: Run tfsec (fail on HIGH)
+        run: tfsec --no-color --minimum-severity HIGH --soft-fail .
+
+
+
+
+
       - name: Configure AWS via OIDC (plan)
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -83,4 +118,4 @@ jobs:
 
     # 稳定后解开自动部署（可选）
     # - name: Terraform apply (dev)
-    # run: terraform apply -auto-approve -var-file=envs/dev.tfvars 
+    # run: terraform apply -auto-approve -var-file=envs/dev.tfvars

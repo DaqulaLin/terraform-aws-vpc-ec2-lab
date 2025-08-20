@@ -41,4 +41,3 @@ resource "aws_dynamodb_table" "lock" {
     type = "S"
   }
 }
-
