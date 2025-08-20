@@ -80,21 +80,35 @@ jobs:
       - name: Terraform Plan (no lock, exitcode-aware)
         id: tfplan
         shell: bash
+        env:
+          TF_INPUT: "false"
+          TF_IN_AUTOMATION: "1"
         run: |
           set +e
+          mkdir -p /tmp/tflogs
           terraform -chdir=envs/dev plan \
             -lock=false \
             -var-file=dev.tfvars \
             -detailed-exitcode \
             -no-color \
-            -out=plan.out
+            -out=plan.tfplan \
+            2> >(tee /tmp/tflogs/stderr.log >&2)
           code=$?
           echo "Terraform exit code: $code"
           echo "exitcode=$code" >> "$GITHUB_OUTPUT"
+
+          # 如果失败，把首个 Error 段落打印出来再退出
           if [ "$code" -eq 1 ]; then
+            echo "::group::🔎 Terraform error details"
+            awk 'p;/^Error:/ && ++n==1{p=1} p' /tmp/tflogs/stderr.log | sed -n '1,200p'
+            echo "::endgroup::"
             exit 1
           fi
-            exit 0
+          exit 0
+
+      - name: Who am I (AWS)
+        run: aws sts get-caller-identity
+
 
 
       - name: Upload Plan Artifact
