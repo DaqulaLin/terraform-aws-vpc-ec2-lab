@@ -13,5 +13,10 @@
 
 | Name | Description |
 |------|-------------|
+| <a name="output_instance_id"></a> [instance\_id](#output\_instance\_id) | n/a |
+| <a name="output_instance_ids"></a> [instance\_ids](#output\_instance\_ids) | n/a |
+| <a name="output_public_dns"></a> [public\_dns](#output\_public\_dns) | n/a |
 | <a name="output_public_ip"></a> [public\_ip](#output\_public\_ip) | n/a |
+| <a name="output_security_group_id"></a> [security\_group\_id](#output\_security\_group\_id) | n/a |
+| <a name="output_web_sg_id"></a> [web\_sg\_id](#output\_web\_sg\_id) | 顺手也把 EC2 安全组导出来，给外层加 ALB -> EC2 的放行规则用 |
 <!-- END_TF_DOCS -->

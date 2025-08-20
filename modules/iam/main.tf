@@ -109,7 +109,73 @@ resource "aws_iam_role" "tf_apply" {
   max_session_duration = 3600
 }
 
+data "aws_caller_identity" "current" {}
+
+# --- MVP 应用权限：远程状态 + EC2/ELB/RDS 服务范围 ---
+data "aws_iam_policy_document" "apply_policy_mvp" {
+  # S3 远程状态：读写对象 + 列目录
+  statement {
+    sid    = "S3StateRW"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:GetObjectVersion",
+      "s3:ListBucket", "s3:GetBucketLocation"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.state_bucket_name}",
+      "arn:aws:s3:::${var.state_bucket_name}/*"
+    ]
+  }
+  # DynamoDB 锁表：加/读/删/改锁
+  statement {
+    sid    = "DDBLockRW"
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem", "dynamodb:PutItem",
+      "dynamodb:DeleteItem", "dynamodb:UpdateItem"
+    ]
+    resources = [
+      "arn:aws:dynamodb:${var.region}:${data.aws_caller_identity.current.account_id}:table/${var.state_lock_table_name}"
+    ]
+  }
+
+  # 业务服务（MVP：先放到服务级，跑通后再逐步收敛到资源 ARN）
+  statement {
+    sid    = "ProjectServices"
+    effect = "Allow"
+    actions = [
+      "ec2:*",
+      "elasticloadbalancing:*",
+      "rds:*",
+      # 如你的模块里有创建/绑定 Instance Profile 或 Log Group，可保留以下几类：
+      "iam:GetRole", "iam:ListRolePolicies", "iam:PassRole",
+      "logs:*", "cloudwatch:*"
+    ]
+    resources = ["*"]
+  }
+  # 如你的 tfstate 桶使用了 SSE-KMS，加上 KMS 基本权限（否则读写对象会因 KMS 报错）
+  # 把 <KMS_KEY_ARN> 改成你状态桶用的 KMS Key ARN；没有就删掉这个 statement。
+  # statement {
+  #   sid     = "StateKMS"
+  #   effect  = "Allow"
+  #   actions = ["kms:Decrypt","kms:Encrypt","kms:GenerateDataKey*","kms:DescribeKey"]
+  #   resources = ["<KMS_KEY_ARN>"]
+  # }
+}
+
+resource "aws_iam_policy" "tf_apply_mvp" {
+  name   = "gha-apply-mvp"
+  policy = data.aws_iam_policy_document.apply_policy_mvp.json
+}
+
+resource "aws_iam_role_policy_attachment" "tf_apply_attach_mvp" {
+  role       = aws_iam_role.tf_apply.name
+  policy_arn = aws_iam_policy.tf_apply_mvp.arn
+}
+
+/*
 resource "aws_iam_role_policy_attachment" "tf_apply_admin" {
   role       = aws_iam_role.tf_apply.name
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
+*/

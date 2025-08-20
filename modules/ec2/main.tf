@@ -45,6 +45,7 @@ resource "aws_security_group" "web" {
   name   = "${var.name_prefix}-web-sg"
   vpc_id = var.vpc_id
 
+  /*
   ingress {
     from_port   = 80
     to_port     = 80
@@ -63,6 +64,7 @@ resource "aws_security_group" "web" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  */
 }
 
 # 启动即安装 Nginx（AL2023 用 dnf）

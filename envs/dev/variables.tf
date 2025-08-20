@@ -27,3 +27,5 @@ variable "ami_id" {
   type    = string
   default = null
 }
+
+variable "rds_password" { type = string }
