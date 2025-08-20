@@ -91,4 +91,3 @@ resource "aws_instance" "this" {
   user_data                   = local.user_data
   tags                        = { Name = "${var.name_prefix}-web" }
 }
-

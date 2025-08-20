@@ -1,0 +1,12 @@
+formatter: markdown table
+output:
+  file: README.md
+  mode: inject
+sections:
+  show:
+    - header
+    - inputs
+    - outputs
+recursive:
+  enabled: true
+  path: modules

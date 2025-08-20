@@ -11,5 +11,3 @@ output "plan_role_arn" {
 output "apply_role_arn" {
   value = module.iam_gha_oidc.apply_role_arn
 }
-
-

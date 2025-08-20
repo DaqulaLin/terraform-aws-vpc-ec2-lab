@@ -1,0 +1,39 @@
+repos:
+  - repo: local
+    hooks:
+      - id: terraform-fmt
+        name: terraform fmt (recursive)
+        entry: terraform fmt -recursive
+        language: system
+        types: [terraform]
+
+      - id: terraform-validate
+        name: terraform validate (no backend)
+        entry: powershell -NoProfile -Command "terraform init -backend=false; terraform validate"
+        language: system
+        pass_filenames: false
+
+      - id: tflint
+        name: tflint (treat warnings as pass)
+        # 运行 tflint；若退出码是 2（仅 warnings），转换为 0
+        entry: powershell -NoProfile -Command "tflint --config=.tflint.hcl; if ($LASTEXITCODE -eq 2) { exit 0 } else { exit $LASTEXITCODE }"
+        language: system
+        pass_filenames: false
+
+      - id: tfsec
+        name: tfsec (soft-fail)
+        entry: tfsec --soft-fail .
+        language: system
+        pass_filenames: false
+
+      - id: terraform-docs
+        name: terraform-docs (inject)
+        entry: terraform-docs .
+        language: system
+        pass_filenames: false
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace

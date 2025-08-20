@@ -1,0 +1,6 @@
+exclude:
+  # 若确有业务需求可以豁免的规则（示例）
+  - AWS002   # 0.0.0.0/0 on SG (示例)
+severity-overrides:
+  AWS018: HIGH     # S3 未加密视为高危
+soft-fail: true     # 本地先软失败；CI 我们会收紧为高危失败
