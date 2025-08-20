@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 permissions:
-  id-token: write   # 关键：允许工作流通过 OIDC 换取临时凭证
+  id-token: write
   contents: read
 
 env:
@@ -15,9 +15,13 @@ env:
   TF_IN_AUTOMATION: "1"
   AWS_REGION: us-east-1
 
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pr_plan:
-    name: PR fmt/validate/plan (OIDC)
+    name: PR fmt/validate/plan (read-only via OIDC)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -25,7 +29,7 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.12.2   # 与你本地一致，避免版本差异
+          terraform_version: 1.12.2
 
       # ---------- 质量 / 安全 ----------
       - name: Install TFLint
@@ -40,17 +44,15 @@ jobs:
           set +e
           tflint -f compact
           code=$?
-          # 0=ok, 2=warnings => 不阻塞 PR
           if [ $code -eq 0 ] || [ $code -eq 2 ]; then exit 0; else exit $code; fi
 
-      - name: Install tfsec (binary)
+      - name: Install tfsec
         shell: bash
         run: |
           set -euo pipefail
-          os="$(uname -s | tr '[:upper:]' '[:lower:]')"   # linux
-          arch="$(dpkg --print-architecture)"             # amd64 / arm64
-          sudo curl -fsSL \
-            "https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-${os}-${arch}" \
+          os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          arch="$(dpkg --print-architecture)"
+          sudo curl -fsSL "https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-${os}-${arch}" \
             -o /usr/local/bin/tfsec
           sudo chmod +x /usr/local/bin/tfsec
           tfsec --version
@@ -58,44 +60,46 @@ jobs:
       - name: Run tfsec (fail on HIGH)
         run: tfsec --no-color --minimum-severity HIGH --soft-fail .
 
-
-
-
-
+      # ---------- OIDC（PR只读） ----------
       - name: Configure AWS via OIDC (plan)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::160885250897:role/gha-oidc-tf-plan
+          role-to-assume: ${{ secrets.AWS_GHA_PLAN_ROLE_ARN }}   # ← 建议改用 Secret
           aws-region: us-east-1
 
-      - name: Terraform fmt & validate (no backend)
-        run: |
-          terraform fmt -check -recursive
-          terraform init -backend-config=backend.hcl
-          terraform validate
+      # ---------- Terraform（envs/dev） ----------
+      - name: Terraform Init (envs/dev)
+        run: terraform -chdir=envs/dev init -input=false
 
-      - name: Terraform plan (dev, no lock, exitcode-aware)
+      - name: Terraform Fmt
+        run: terraform -chdir=envs/dev fmt -check -recursive
+
+      - name: Terraform Validate
+        run: terraform -chdir=envs/dev validate
+
+      - name: Terraform Plan (no lock)
         shell: bash
         run: |
           set +e
-          terraform plan \
+          terraform -chdir=envs/dev plan \
             -lock=false \
-            -var-file=envs/dev.tfvars \
+            -var-file=dev.tfvars \
             -detailed-exitcode \
-            -no-color
+            -no-color \
+            -out=plan.out
           code=$?
           echo "Terraform exit code: $code"
-          # 1 = 真错误 -> 失败;0 或 2 = 允许通过
-          if [ $code -eq 1 ]; then
-            exit 1
-          else
-            exit 0
-          fi
+          if [ $code -eq 1 ]; then exit 1; else exit 0; fi
 
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-plan
+          path: envs/dev/plan.out
 
-  main_pipeline:
-    name: Main init + plan (OIDC)
-    if: github.event_name == 'push'
+  main_plan:
+    name: Main plan (OIDC)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -104,18 +108,51 @@ jobs:
         with:
           terraform_version: 1.12.2
 
-      - name: Configure AWS via OIDC (apply)
+      - name: Configure AWS via OIDC (apply role)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::160885250897:role/gha-oidc-tf-apply
+          role-to-assume: ${{ secrets.AWS_GHA_APPLY_ROLE_ARN }}   # ← 建议改用 Secret
           aws-region: us-east-1
 
-      - name: Terraform init (backend)
-        run: terraform init -backend-config=backend.hcl
+      - name: Terraform Init
+        run: terraform -chdir=envs/dev init
 
-      - name: Terraform plan (dev)
-        run: terraform plan -var-file=envs/dev.tfvars
+      - name: Terraform Plan
+        run: terraform -chdir=envs/dev plan -no-color -var-file=dev.tfvars -out=plan.out
 
-    # 稳定后解开自动部署（可选）
-    # - name: Terraform apply (dev)
-    # run: terraform apply -auto-approve -var-file=envs/dev.tfvars
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tf-plan
+          path: envs/dev/plan.out
+
+  main_apply:
+    name: Main apply (needs approval)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [ main_plan ]
+    runs-on: ubuntu-latest
+    environment: prod       # ← 这里会触发“环境审批”
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2
+
+      - name: Configure AWS via OIDC (apply role)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GHA_APPLY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        run: terraform -chdir=envs/dev init
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tf-plan
+          path: envs/dev
+
+      - name: Terraform Apply (approved)
+        run: terraform -chdir=envs/dev apply -auto-approve plan.out
