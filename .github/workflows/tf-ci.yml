@@ -46,7 +46,7 @@ jobs:
       - name: Install tfsec
         run: |
           curl -sSfL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh \
-            | sh -s -- -b /usr/local/bin
+            | bash -s -- -b /usr/local/bin
           tfsec --version
 
       - name: Run tfsec (fail on HIGH)
