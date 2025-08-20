@@ -43,14 +43,19 @@ jobs:
           # 0=ok, 2=warnings => 不阻塞 PR
           if [ $code -eq 0 ] || [ $code -eq 2 ]; then exit 0; else exit $code; fi
 
-      - name: Install tfsec
+      - name: Install tfsec (binary)
+        shell: bash
         run: |
-          curl -sSfL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh \
-            | bash -s -- -b /usr/local/bin
+          curl -fsSL \
+            https://github.com/aquasecurity/tfsec/releases/download/v1.28.14/tfsec-linux-amd64 \
+            -o /usr/local/bin/tfsec
+          chmod +x /usr/local/bin/tfsec
           tfsec --version
 
       - name: Run tfsec (fail on HIGH)
-        run: tfsec --no-color --minimum-severity HIGH .
+        run: tfsec --no-color --minimum-severity HIGH  .
+
+
 
 
       - name: Configure AWS via OIDC (plan)
