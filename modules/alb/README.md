@@ -3,9 +3,10 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_asg_name"></a> [asg\_name](#input\_asg\_name) | Autoscaling group name to attach to target group | `string` | `null` | no |
 | <a name="input_public_subnet_ids"></a> [public\_subnet\_ids](#input\_public\_subnet\_ids) | n/a | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | n/a | `map(string)` | `{}` | no |
-| <a name="input_target_instance_ids"></a> [target\_instance\_ids](#input\_target\_instance\_ids) | n/a | `list(string)` | n/a | yes |
+| <a name="input_target_instance_ids"></a> [target\_instance\_ids](#input\_target\_instance\_ids) | EC2 instance IDs to register to target group | `list(string)` | `[]` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | n/a | `string` | n/a | yes |
 
 ## Outputs
