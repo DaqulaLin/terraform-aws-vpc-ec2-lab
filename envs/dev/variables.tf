@@ -34,7 +34,7 @@ variable "rds_password" { type = string }
 
 variable "enable_alb" {
   type    = bool
-  default = true
+  default = false
 }
 
 variable "enable_rds" {
