@@ -23,7 +23,7 @@ module "iam_gha_oidc" {
 }
 
 
-
+/*
 module "ec2" {
   source        = "../../modules/ec2"
   name_prefix   = var.name_prefix
@@ -33,7 +33,7 @@ module "ec2" {
   ami_id        = var.ami_id
 
 }
-
+*/
 
 locals {
   alb_enabled = var.enable_alb ? { main = true } : {}
