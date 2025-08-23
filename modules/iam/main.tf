@@ -44,7 +44,7 @@ data "aws_iam_policy_document" "plan_policy" {
   statement {
     sid     = "S3StateRead"
     effect  = "Allow"
-    actions = ["s3:ListBucket", "s3:GetObject", "s3:GetObjectVersion"]
+    actions = ["s3:ListBucket", "s3:GetBucketLocation", "s3:GetObject", "s3:GetObjectVersion"]
     resources = [
       "arn:aws:s3:::${var.state_bucket_name}",
       "arn:aws:s3:::${var.state_bucket_name}/*"
@@ -65,7 +65,40 @@ data "aws_iam_policy_document" "plan_policy" {
     ]
     resources = ["*"]
   }
+  # 仅用于 plan 的读取权限（不会创建/修改）
+  statement {
+    sid       = "IAMReadOnly"
+    effect    = "Allow"
+    actions   = ["iam:Get*", "iam:List*"]
+    resources = ["*"]
+  }
+  statement {
+    sid       = "EC2ReadOnly"
+    effect    = "Allow"
+    actions   = ["ec2:Describe*"]
+    resources = ["*"]
+  }
+  statement {
+    sid       = "ELBReadOnly"
+    effect    = "Allow"
+    actions   = ["elasticloadbalancing:Describe*"]
+    resources = ["*"]
+  }
+  # 若后续 PR 会读 ASG/RDS，也一并加：
+  statement {
+    sid       = "ASGReadOnly"
+    effect    = "Allow"
+    actions   = ["autoscaling:Describe*"]
+    resources = ["*"]
+  }
+  statement {
+    sid       = "RDSReadOnly"
+    effect    = "Allow"
+    actions   = ["rds:Describe*"]
+    resources = ["*"]
+  }
 }
+
 
 resource "aws_iam_policy" "tf_plan" {
   name   = "tf-plan-read-state"
