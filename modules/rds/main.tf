@@ -1,5 +1,5 @@
 resource "aws_db_subnet_group" "this" {
-  name       = "rds-subnets"
+  name       = "${var.tags.env}-rds-subnets"
   subnet_ids = var.private_subnet_ids
   tags       = var.tags
 }
@@ -8,12 +8,7 @@ resource "aws_security_group" "rds" {
   name        = "rds-sg"
   description = "Allow MySQL from SG only"
   vpc_id      = var.vpc_id
-  ingress {
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [var.app_sg_id]
-  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -22,6 +17,15 @@ resource "aws_security_group" "rds" {
   }
   tags = var.tags
 
+}
+
+resource "aws_security_group_rule" "mysql_from_app" {
+  type                     = "ingress"
+  security_group_id        = aws_security_group.rds.id
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  source_security_group_id = var.app_sg_id
 }
 
 resource "aws_db_instance" "this" {

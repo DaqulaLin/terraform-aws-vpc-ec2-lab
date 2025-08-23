@@ -24,6 +24,11 @@ output "alb_sg_id" {
   description = "ALB security group id when enabled"
 }
 
+# envs/dev/outputs.tf
+output "rds_endpoint" {
+  value       = var.enable_rds ? module.rds["main"].endpoint : null
+  description = "RDS endpoint when enabled"
+}
 
 
 #output "rds_endpoint" { value = module.rds.endpoint }

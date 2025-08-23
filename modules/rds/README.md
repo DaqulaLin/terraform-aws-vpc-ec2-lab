@@ -23,5 +23,7 @@
 | <a name="output_db_arn"></a> [db\_arn](#output\_db\_arn) | n/a |
 | <a name="output_db_subnet_group_name"></a> [db\_subnet\_group\_name](#output\_db\_subnet\_group\_name) | n/a |
 | <a name="output_endpoint"></a> [endpoint](#output\_endpoint) | n/a |
+| <a name="output_identifier"></a> [identifier](#output\_identifier) | n/a |
+| <a name="output_port"></a> [port](#output\_port) | n/a |
 | <a name="output_rds_sg_id"></a> [rds\_sg\_id](#output\_rds\_sg\_id) | n/a |
 <!-- END_TF_DOCS -->
