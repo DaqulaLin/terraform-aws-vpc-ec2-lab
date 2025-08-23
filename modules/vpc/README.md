@@ -4,6 +4,7 @@
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_azs"></a> [azs](#input\_azs) | n/a | `list(string)` | n/a | yes |
+| <a name="input_enable_nat"></a> [enable\_nat](#input\_enable\_nat) | n/a | `bool` | `false` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | n/a | `string` | n/a | yes |
 | <a name="input_private_subnets"></a> [private\_subnets](#input\_private\_subnets) | n/a | `list(string)` | n/a | yes |
 | <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | n/a | `list(string)` | n/a | yes |

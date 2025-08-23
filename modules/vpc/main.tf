@@ -35,13 +35,15 @@ resource "aws_subnet" "private" {
 
 #Put NAT on the first public subnet
 resource "aws_eip" "nat" {
+  count  = var.enable_nat ? 1 : 0
   domain = "vpc"
   tags   = { Name = "${var.name_prefix}-nat-eip" }
 }
 
 resource "aws_nat_gateway" "nat" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = values(aws_subnet.public)[0].id
+  count         = var.enable_nat ? 1 : 0
+  allocation_id = var.enable_nat ? aws_eip.nat[0].id : null
+  subnet_id     = var.enable_nat ? values(aws_subnet.public)[0].id : null
   tags          = { Name = "${var.name_prefix}-nat" }
   depends_on    = [aws_internet_gateway.igw]
 }
@@ -67,11 +69,14 @@ resource "aws_route_table_association" "public" {
 # Private route table: to NAT Gateway
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.this.id
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat.id
-  }
-  tags = { Name = "${var.name_prefix}-private-rt" }
+  tags   = { Name = "${var.name_prefix}-private-rt" }
+}
+
+resource "aws_route" "private_default_via_nat" {
+  count                  = var.enable_nat ? 1 : 0
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat[0].id
 }
 
 resource "aws_route_table_association" "private" {

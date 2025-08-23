@@ -1,19 +1,12 @@
-terraform {
-  required_version = ">= 1.6.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
 
+/*
 locals {
 
   ec2_instance_ids = [module.ec2.instance_id]
 
 
 }
+*/
 
 
 
@@ -24,9 +17,11 @@ module "vpc" {
   azs             = var.azs
   public_subnets  = var.public_subnets
   private_subnets = var.private_subnets
+
+
 }
 
-
+/*
 module "ec2" {
   source        = "../../modules/ec2"
   name_prefix   = var.name_prefix
@@ -34,6 +29,8 @@ module "ec2" {
   vpc_id        = module.vpc.vpc_id
   instance_type = var.ec2_instance_type
   ami_id        = var.ami_id
+
+  count = var.enable_ec2 ? 1 : 0
 }
 
 
@@ -44,6 +41,8 @@ module "iam_gha_oidc" {
   region                = var.region
   state_bucket_name     = "tfstate-160885250897-dev-1833551180"
   state_lock_table_name = "tf-locks"
+
+  count = var.enable_iam ? 1 : 0
 }
 
 module "alb" {
@@ -56,6 +55,9 @@ module "alb" {
 
   # 未来切到 ASG 时：把上面这一行删掉/注释掉，并传 asg_name
   # asg_name          = module.asg.name
+
+  count = var.enable_alb ? 1 : 0
+
   tags = { env = "dev", app = "demo" }
 }
 
@@ -75,5 +77,9 @@ module "rds" {
   private_subnet_ids = module.vpc.private_subnet_ids
   app_sg_id          = module.ec2.security_group_id
   password           = var.rds_password
-  tags               = { env = "dev", app = "demo" }
+
+  count = var.enable_rds ? 1 : 0
+
+  tags = { env = "dev", app = "demo" }
 }
+*/
