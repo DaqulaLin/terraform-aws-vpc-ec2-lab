@@ -32,13 +32,6 @@ variable "rds_password" { type = string }
 
 
 
-
-variable "enable_ec2" {
-  type    = bool
-  default = false
-}
-
-
 variable "enable_alb" {
   type    = bool
   default = false

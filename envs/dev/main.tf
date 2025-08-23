@@ -34,7 +34,7 @@ module "iam_gha_oidc" {
 }
 
 
-/*
+
 module "ec2" {
   source        = "../../modules/ec2"
   name_prefix   = var.name_prefix
@@ -43,11 +43,10 @@ module "ec2" {
   instance_type = var.ec2_instance_type
   ami_id        = var.ami_id
 
-  count = var.enable_ec2 ? 1 : 0
 }
 
 
-
+/*
 module "alb" {
   source            = "../../modules/alb"
   vpc_id            = module.vpc.vpc_id
