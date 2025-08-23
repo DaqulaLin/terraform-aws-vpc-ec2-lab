@@ -178,7 +178,7 @@ data "aws_iam_policy_document" "apply_policy_mvp" {
       "elasticloadbalancing:*",
       "rds:*",
       # 如你的模块里有创建/绑定 Instance Profile 或 Log Group，可保留以下几类：
-      "iam:GetRole", "iam:ListRolePolicies", "iam:PassRole",
+      "iam:Get*", "iam:List*", "iam:PassRole",
       "logs:*", "cloudwatch:*"
     ]
     resources = ["*"]
