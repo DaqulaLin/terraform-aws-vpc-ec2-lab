@@ -128,7 +128,12 @@ data "aws_iam_policy_document" "assume_apply" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${local.gh_repo}:ref:refs/heads/main"]
+      values = ["repo:${local.gh_repo}:ref:refs/heads/main",
+        "repo:${local.gh_repo}:environment:prod"
+        # 如未来用 tag 发布，也可顺带放开：
+        # "repo:${local.gh_repo}:ref:refs/tags/*"
+      ]
+
     }
   }
 }
