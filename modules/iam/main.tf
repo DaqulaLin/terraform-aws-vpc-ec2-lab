@@ -182,7 +182,6 @@ data "aws_iam_policy_document" "apply_policy_mvp" {
     effect = "Allow"
     actions = [
       "ec2:*",
-      "vpc:*",
       "elasticloadbalancing:*",
       "rds:*",
       # 如你的模块里有创建/绑定 Instance Profile 或 Log Group，可保留以下几类：
@@ -194,6 +193,14 @@ data "aws_iam_policy_document" "apply_policy_mvp" {
       "iam:UntagRole",
       "iam:CreatePolicyVersion",
       "iam:DeletePolicyVersion",
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:CreateInstanceProfile",
+      "iam:DeleteInstanceProfile",
+      "iam:AddRoleToInstanceProfile",
+      "iam:RemoveRoleFromInstanceProfile",
       "logs:*", "cloudwatch:*"
     ]
     resources = ["*"]

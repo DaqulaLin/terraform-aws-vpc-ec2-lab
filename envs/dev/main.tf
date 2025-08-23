@@ -1,5 +1,6 @@
 
 module "vpc" {
+  for_each        = local.vpc_enabled
   source          = "../../modules/vpc"
   name_prefix     = var.name_prefix
   vpc_cidr        = var.vpc_cidr
@@ -28,8 +29,8 @@ module "ec2" {
   for_each      = local.ec2_enabled
   source        = "../../modules/ec2"
   name_prefix   = var.name_prefix
-  subnet_id     = module.vpc.public_subnet_ids[0]
-  vpc_id        = module.vpc.vpc_id
+  subnet_id     = module.vpc["main"].public_subnet_ids[0]
+  vpc_id        = module.vpc["main"].vpc_id
   instance_type = var.ec2_instance_type
   ami_id        = var.ami_id
 
@@ -40,8 +41,8 @@ module "ec2" {
 module "alb" {
   for_each          = local.alb_enabled
   source            = "../../modules/alb"
-  vpc_id            = module.vpc.vpc_id
-  public_subnet_ids = module.vpc.public_subnet_ids
+  vpc_id            = module.vpc["main"].vpc_id
+  public_subnet_ids = module.vpc["main"].public_subnet_ids
 
   # 当前阶段：用实例ID列表对接
   target_instance_ids = var.enable_ec2 ? module.ec2["main"].instance_ids : []
@@ -56,7 +57,7 @@ module "alb" {
 # 让 EC2 只接受来自 ALB 的 80 端口（如 EC2 模块未内置规则，则在此补一条）
 
 resource "aws_security_group_rule" "web_from_alb" {
-  count                    = (var.enable_alb && var.enable_ec2) ? 1 : 0
+  count                    = (var.enable_vpc && var.enable_alb && var.enable_ec2) ? 1 : 0
   type                     = "ingress"
   from_port                = 80
   to_port                  = 80
@@ -70,8 +71,8 @@ resource "aws_security_group_rule" "web_from_alb" {
 module "rds" {
   for_each           = local.rds_enabled
   source             = "../../modules/rds"
-  vpc_id             = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnet_ids
+  vpc_id             = module.vpc["main"].vpc_id
+  private_subnet_ids = module.vpc["main"].private_subnet_ids
   app_sg_id          = module.ec2["main"].security_group_id
   password           = var.rds_password
   tags               = { env = "dev", app = "demo" }
