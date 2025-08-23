@@ -38,10 +38,6 @@ variable "enable_ec2" {
   default = false
 }
 
-variable "enable_iam" {
-  type    = bool
-  default = false
-}
 
 variable "enable_alb" {
   type    = bool
