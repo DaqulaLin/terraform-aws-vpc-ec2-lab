@@ -128,7 +128,12 @@ data "aws_iam_policy_document" "assume_apply" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${local.gh_repo}:ref:refs/heads/main"]
+      values = ["repo:${local.gh_repo}:ref:refs/heads/main",
+        "repo:${local.gh_repo}:environment:prod"
+        # 如未来用 tag 发布，也可顺带放开：
+        # "repo:${local.gh_repo}:ref:refs/tags/*"
+      ]
+
     }
   }
 }
@@ -178,7 +183,7 @@ data "aws_iam_policy_document" "apply_policy_mvp" {
       "elasticloadbalancing:*",
       "rds:*",
       # 如你的模块里有创建/绑定 Instance Profile 或 Log Group，可保留以下几类：
-      "iam:GetRole", "iam:ListRolePolicies", "iam:PassRole",
+      "iam:Get*", "iam:List*", "iam:PassRole", "iam:UpdateAssumeRolePolicy", "iam:TagRole", "iam:UntagRole", "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
       "logs:*", "cloudwatch:*"
     ]
     resources = ["*"]

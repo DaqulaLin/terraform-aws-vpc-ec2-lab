@@ -63,16 +63,18 @@ resource "aws_security_group_rule" "web_from_alb" {
   security_group_id        = module.ec2.security_group_id                         # 目标：EC2 SG（由 EC2 子模块输出）
   source_security_group_id = var.enable_alb ? module.alb["main"].alb_sg_id : null # 源：ALB SG（由 ALB 子模块输出）
 }
-/*
+
+
+locals {
+  rds_enabled = var.enable_rds ? { main = true } : {}
+}
+
 module "rds" {
+  for_each           = local.rds_enabled
   source             = "../../modules/rds"
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
   app_sg_id          = module.ec2.security_group_id
   password           = var.rds_password
-
-  count = var.enable_rds ? 1 : 0
-
-  tags = { env = "dev", app = "demo" }
+  tags               = { env = "dev", app = "demo" }
 }
-*/
