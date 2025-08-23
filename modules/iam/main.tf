@@ -1,6 +1,3 @@
-#provider "aws" { region = var.region }
-
-
 
 # 1) GitHub OIDC Provider（thumbprint 作兜底；AWS 现已托管更新）
 resource "aws_iam_openid_connect_provider" "github" {

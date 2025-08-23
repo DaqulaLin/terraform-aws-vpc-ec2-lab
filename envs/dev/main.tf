@@ -21,6 +21,19 @@ module "vpc" {
 
 }
 
+
+module "iam_gha_oidc" {
+  source                = "../../modules/iam"
+  github_org            = "DaqulaLin"
+  github_repo           = "terraform-aws-vpc-ec2-lab"
+  region                = var.region
+  state_bucket_name     = "tfstate-160885250897-dev-1833551180"
+  state_lock_table_name = "tf-locks"
+
+
+}
+
+
 /*
 module "ec2" {
   source        = "../../modules/ec2"
@@ -34,16 +47,6 @@ module "ec2" {
 }
 
 
-module "iam_gha_oidc" {
-  source                = "../../modules/iam"
-  github_org            = "DaqulaLin"
-  github_repo           = "terraform-aws-vpc-ec2-lab"
-  region                = var.region
-  state_bucket_name     = "tfstate-160885250897-dev-1833551180"
-  state_lock_table_name = "tf-locks"
-
-  count = var.enable_iam ? 1 : 0
-}
 
 module "alb" {
   source            = "../../modules/alb"
