@@ -31,41 +31,25 @@ A minimal, interview-ready IaC project that demonstrates **GitHub Actions OIDC (
 
 flowchart LR
   subgraph Internet
-    UserBrowser
+    Browser[User / Client]
   end
 
   subgraph AWS [VPC 10.0.0.0/16]
     direction LR
-    subgraph Pub [Public Subnets]
-      ALB[ALB (SG: alb-sg)]
+    subgraph Public [Public Subnets]
+      ALB[ALB\n(SG: alb-sg)]
     end
-    subgraph Pri [Private Subnets]
-      EC2[EC2 (Nginx + SSM)\n(SG: web-sg)]
-      RDS[(RDS MySQL\npublicly_accessible=false\nSG: rds-sg)]
+    subgraph Private [Private Subnets]
+      EC2[EC2: Nginx + SSM\n(SG: web-sg)]
+      RDS[(RDS MySQL\nSG: rds-sg\npublicly_accessible=false)]
     end
   end
 
-  UserBrowser -->|HTTP 80/443| ALB
-  ALB -->|HTTP 80 only\nsource=alb-sg| EC2
+  Browser -->|HTTP 80/443| ALB
+  ALB -->|HTTP 80\nsource=alb-sg| EC2
   EC2 -->|TCP 3306\nsource=web-sg| RDS
 
-
-  classDef pub fill:#eef7ff,stroke:#7aa7d6,color:#1b4b72;
-  classDef pri fill:#f6fff0,stroke:#79b66a,color:#275b1b;
-  class Pub pub
-  class Pri pri
-
-Security group flow
-
-alb-sg: ingress from internet on 80/443
-
-web-sg: ingress only from alb-sg on 80
-
-rds-sg: ingress only from web-sg on 3306
-
-RDS is private-only (publicly_accessible=false)
-
-CI/CD Flow
+## CI/CD Flow
 sequenceDiagram
   autonumber
   participant Dev as Developer
@@ -75,34 +59,15 @@ sequenceDiagram
 
   Dev->>GH: Open PR
   GH->>AWS: Assume plan role (OIDC, read-only)
-  GH->>TF: fmt / validate / tflint / tfsec + plan (-lock=false)
-  GH-->>Dev: PR plan result (no changes applied)
+  GH->>TF: fmt / validate / tflint / tfsec / plan (-lock=false)
+  GH-->>Dev: PR plan result
 
   Dev->>GH: Merge PR to main
-  GH->>AWS: Assume plan role (OIDC, read-only)
-  GH->>TF: main plan (locks via DynamoDB)
-  GH-->>Dev: Upload plan.out artifact
+  GH->>AWS: Assume plan role (read-only)
+  GH->>TF: main plan (uses lock)
+  GH-->>Dev: Upload plan.out
 
-  Dev->>GH: Approve "prod" environment
+  Dev->>GH: Approve environment "prod"
   GH->>AWS: Assume apply role (OIDC)
   GH->>TF: Download plan.out & apply
-  TF-->>AWS: Create/Update/Destroy resources
-
-Consistency: main plan uploads plan.out; main apply downloads that same file and runs terraform apply plan.out. If the plan is stale, Terraform errors out.
-
-Repository Layout
-.
-├─ envs/
-│  └─ dev/
-│     ├─ main.tf            # root module (for_each + enable_* flags)
-│     ├─ variables.tf
-│     ├─ outputs.tf
-│     ├─ backend.tf         # S3 state + DynamoDB lock
-│     └─ dev.tfvars         # env values (enable_*, rds_password, etc.)
-├─ modules/
-│  ├─ vpc/                  # VPC module
-│  ├─ ec2/                  # EC2 + SSM + SG (user_data installs Nginx)
-│  ├─ alb/                  # ALB + listener + target group
-│  └─ rds/                  # RDS + subnet group + SG rule (SG→SG)
-└─ .github/workflows/
-   └─ terraform-ci.yml      # PR plan & main plan/apply (with approval)
+  TF-->>AWS: Create / Update / Destroy
