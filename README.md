@@ -53,8 +53,8 @@ flowchart LR
   end
 
   Browser -->|HTTP 80/443| ALB
-  ALB -->|HTTP 80 (source=alb-sg)| EC2
-  EC2 -->|TCP 3306 (source=web-sg)| RDS
+  ALB -->|HTTP 80| EC2
+  EC2 -->|TCP 3306| RDS
 ```
 
 **Key choices**
