@@ -23,7 +23,7 @@ module "iam_gha_oidc" {
 }
 
 
-/*
+
 module "ec2" {
   source        = "../../modules/ec2"
   name_prefix   = var.name_prefix
@@ -33,7 +33,7 @@ module "ec2" {
   ami_id        = var.ami_id
 
 }
-*/
+
 
 locals {
   alb_enabled = var.enable_alb ? { main = true } : {}
@@ -53,7 +53,9 @@ module "alb" {
   tags = { env = "dev", app = "demo" }
 }
 
+/*
 # 让 EC2 只接受来自 ALB 的 80 端口（如 EC2 模块未内置规则，则在此补一条）
+
 resource "aws_security_group_rule" "web_from_alb" {
   count                    = var.enable_alb ? 1 : 0
   type                     = "ingress"
@@ -63,6 +65,7 @@ resource "aws_security_group_rule" "web_from_alb" {
   security_group_id        = module.ec2.security_group_id                         # 目标：EC2 SG（由 EC2 子模块输出）
   source_security_group_id = var.enable_alb ? module.alb["main"].alb_sg_id : null # 源：ALB SG（由 ALB 子模块输出）
 }
+*/
 
 
 locals {
