@@ -8,12 +8,15 @@ A minimal, interview-ready Infrastructure-as-Code project that demonstrates **Gi
 
 ---
 
-## Highlights
-- **OIDC to AWS (no static keys):** PR uses **read-only** role; `main` uses **approval-gated apply**.
-- **Remote state with locking:** S3 + DynamoDB to avoid concurrent writes.
-- **Modular & switchable:** `enable_*` flags (with `for_each`) cleanly create/destroy by PR.
-- **Least-privilege journey:** Admin → Service scope → Resource-level (tighten gradually).
-- **Ops-friendly:** SSM Session Manager (no SSH), SG-to-SG rules, RDS private only.
+
+> A minimal, production-like IaC lab for AWS. GitHub Actions OIDC (no long-lived keys), remote state with locking, least-privilege CI/CD, and switchable modules.
+
+### Highlights
+- **OIDC (no long-lived keys):** GitHub Actions assumes AWS roles via OIDC (separate plan/apply roles).
+- **Remote state + locking:** S3 backend + DynamoDB lock; no state files in the repo.
+- **SG→SG / RDS private / SSM (no SSH):** ALB-SG→EC2-SG (80/443), EC2-SG→RDS-SG (3306); RDS `publicly_accessible=false`; EC2 via Session Manager.
+- **PR read-only, main manual-gated apply:** PR runs fmt/lint/validate/plan; `main` runs plan + **manual** `apply`.
+- **Feature-flag modules:** `enable_*` booleans with `for_each` (e.g., `enable_alb`, `enable_rds`) to add/remove stacks safely.
 
 ---
 
