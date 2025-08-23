@@ -14,6 +14,9 @@ env:
   TF_INPUT: "false"
   TF_IN_AUTOMATION: "1"
   AWS_REGION: us-east-1
+  STATE_BUCKET: my-terraform-state-daqula
+  STATE_KEY: dev/terraform.tfstate
+  USE_APPLY_FOR_PR_PLAN: "false"
 
 concurrency:
   group: terraform-${{ github.ref }}
@@ -60,12 +63,21 @@ jobs:
       - name: Run tfsec (fail on HIGH)
         run: tfsec --no-color --minimum-severity HIGH --soft-fail .
 
+
       # ---------- OIDC（PR只读） ----------
       - name: Configure AWS via OIDC (plan)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_GHA_PLAN_ROLE_ARN }}   # ← 建议改用 Secret
-          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_GHA_PLAN_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Who am I (AWS)
+        run: aws sts get-caller-identity
+
+      - name: S3 state sanity check
+        run: |
+          aws s3api head-bucket --bucket my-terraform-state-daqula || true
+          aws s3api head-object --bucket my-terraform-state-daqula --key dev/terraform.tfstate || true
 
       # ---------- Terraform（envs/dev） ----------
       - name: Terraform Init (envs/dev)
@@ -133,7 +145,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_GHA_APPLY_ROLE_ARN }}   # ← 建议改用 Secret
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform Init
         run: terraform -chdir=envs/dev init
@@ -164,7 +176,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_GHA_APPLY_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform Init
         run: terraform -chdir=envs/dev init
