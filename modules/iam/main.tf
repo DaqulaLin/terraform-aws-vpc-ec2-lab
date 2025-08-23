@@ -92,9 +92,11 @@ data "aws_iam_policy_document" "plan_policy" {
     resources = ["*"]
   }
   statement {
-    sid       = "RDSReadOnly"
-    effect    = "Allow"
-    actions   = ["rds:Describe*"]
+    sid    = "RDSReadOnly"
+    effect = "Allow"
+    actions = ["rds:Describe*",
+      "rds:ListTagsForResource"
+    ]
     resources = ["*"]
   }
 }
@@ -183,7 +185,14 @@ data "aws_iam_policy_document" "apply_policy_mvp" {
       "elasticloadbalancing:*",
       "rds:*",
       # 如你的模块里有创建/绑定 Instance Profile 或 Log Group，可保留以下几类：
-      "iam:Get*", "iam:List*", "iam:PassRole", "iam:UpdateAssumeRolePolicy", "iam:TagRole", "iam:UntagRole", "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
+      "iam:Get*",
+      "iam:List*",
+      "iam:PassRole",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:TagRole",
+      "iam:UntagRole",
+      "iam:CreatePolicyVersion",
+      "iam:DeletePolicyVersion",
       "logs:*", "cloudwatch:*"
     ]
     resources = ["*"]

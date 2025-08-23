@@ -39,5 +39,5 @@ variable "enable_alb" {
 
 variable "enable_rds" {
   type    = bool
-  default = true
+  default = false
 }
