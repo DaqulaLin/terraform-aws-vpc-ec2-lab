@@ -1,4 +1,4 @@
-# Project 1 · Terraform on AWS with GitHub OIDC (VPC/ALB/EC2/RDS)
+# Terraform on AWS with GitHub OIDC (VPC/ALB/EC2/RDS)
 
 A minimal, interview-ready IaC project that demonstrates **GitHub Actions OIDC (no long-lived keys)**, **remote state with locking**, and a pragmatic path to **least privilege** across VPC, ALB, EC2, and RDS.
 
@@ -29,26 +29,26 @@ A minimal, interview-ready IaC project that demonstrates **GitHub Actions OIDC (
 
 ## System Architecture
 
-```mermaid
 flowchart LR
   subgraph Internet
     UserBrowser
   end
 
-  subgraph AWS[VPC (10.0.0.0/16)]
+  subgraph AWS [VPC 10.0.0.0/16]
     direction LR
-    subgraph Pub[Public Subnets]
+    subgraph Pub [Public Subnets]
       ALB[ALB (SG: alb-sg)]
     end
-    subgraph Pri[Private Subnets]
+    subgraph Pri [Private Subnets]
       EC2[EC2 (Nginx + SSM)\n(SG: web-sg)]
       RDS[(RDS MySQL\npublicly_accessible=false\nSG: rds-sg)]
     end
   end
 
   UserBrowser -->|HTTP 80/443| ALB
-  ALB -->|HTTP 80 only\nSource = alb-sg| EC2
-  EC2 -->|TCP 3306\nSource = web-sg| RDS
+  ALB -->|HTTP 80 only\nsource=alb-sg| EC2
+  EC2 -->|TCP 3306\nsource=web-sg| RDS
+
 
   classDef pub fill:#eef7ff,stroke:#7aa7d6,color:#1b4b72;
   classDef pri fill:#f6fff0,stroke:#79b66a,color:#275b1b;
