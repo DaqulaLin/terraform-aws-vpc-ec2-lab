@@ -1,3 +1,5 @@
+
+
 # 若未传 ami_id，则选 Amazon Linux 2023（x86_64）
 # If ami_id is not provided, select Amazon Linux 2023 (x86_64)
 data "aws_ami" "al2023" {

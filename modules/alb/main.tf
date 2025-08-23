@@ -60,6 +60,7 @@ resource "aws_lb_target_group_attachment" "instances" {
 }
 
 # 方式二：挂 ASG（传入 asg_name 时启用）
+/*
 resource "aws_autoscaling_attachment" "asg" {
   count                  = var.asg_name == null ? 0 : 1
   autoscaling_group_name = var.asg_name
@@ -67,3 +68,4 @@ resource "aws_autoscaling_attachment" "asg" {
 
 
 }
+*/
