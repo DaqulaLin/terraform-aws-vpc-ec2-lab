@@ -34,25 +34,27 @@ A minimal, interview-ready Infrastructure-as-Code project that demonstrates **Gi
 
 ```mermaid
 flowchart LR
-  %% Simpler subgraph syntax to support GitHub's Mermaid renderer
+  %% Keep syntax simple for GitHub's Mermaid renderer
   subgraph Internet
-    Browser[User / Client]
+    Browser["User / Client"]
   end
 
   subgraph AWS_VPC
     direction LR
+
     subgraph Public_Subnets
-      ALB[ALB\n(SG: alb-sg)]
+      ALB["ALB (SG: alb-sg)"]
     end
+
     subgraph Private_Subnets
-      EC2[EC2: Nginx + SSM\n(SG: web-sg)]
-      RDS[(RDS MySQL\nSG: rds-sg\npublicly_accessible=false)]
+      EC2["EC2: Nginx + SSM (SG: web-sg)"]
+      RDS["RDS MySQL (SG: rds-sg, publicly_accessible=false)"]
     end
   end
 
   Browser -->|HTTP 80/443| ALB
-  ALB -->|HTTP 80\nsource=alb-sg| EC2
-  EC2 -->|TCP 3306\nsource=web-sg| RDS
+  ALB -->|HTTP 80 (source=alb-sg)| EC2
+  EC2 -->|TCP 3306 (source=web-sg)| RDS
 ```
 
 **Key choices**
