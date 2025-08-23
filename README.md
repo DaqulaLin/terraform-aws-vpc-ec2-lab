@@ -1,16 +1,22 @@
-# Project 1 · Terraform on AWS with GitHub OIDC
+#    Terraform on AWS with GitHub OIDC
+![Terraform](https://img.shields.io/badge/Terraform-%3E%3D1.6-blue)
+![GitHub Actions](https://img.shields.io/badge/CI-GitHub%20Actions-success)
+
 **Stack:** VPC / ALB / EC2 / RDS · **Controls:** OIDC (no keys), Remote State + Lock, Least-Privilege
 
 A minimal, interview-ready Infrastructure-as-Code project that demonstrates **GitHub Actions OIDC** (short-lived credentials), **S3 state + DynamoDB lock**, and a pragmatic path to **least privilege** across **VPC, ALB, EC2, and RDS**. Modules are switchable via `enable_*` flags and use `for_each` for clean create/destroy by PR.
 
 ---
 
-## Highlights
-- **OIDC to AWS (no static keys):** PR uses **read-only** role; `main` uses **approval-gated apply**.
-- **Remote state with locking:** S3 + DynamoDB to avoid concurrent writes.
-- **Modular & switchable:** `enable_*` flags (with `for_each`) cleanly create/destroy by PR.
-- **Least-privilege journey:** Admin → Service scope → Resource-level (tighten gradually).
-- **Ops-friendly:** SSM Session Manager (no SSH), SG-to-SG rules, RDS private only.
+
+> Lean, production-oriented Terraform on AWS. GitHub Actions OIDC (no long-lived keys), remote state with locking, least-privilege CI/CD, and switchable modules.
+
+### Highlights
+- **OIDC (no long-lived keys):** GitHub Actions assumes AWS roles via OIDC (separate plan/apply roles).
+- **Remote state + locking:** S3 backend + DynamoDB lock; no state files in the repo.
+- **SG→SG / RDS private / SSM (no SSH):** ALB-SG→EC2-SG (80/443), EC2-SG→RDS-SG (3306); RDS `publicly_accessible=false`; EC2 via Session Manager.
+- **PR read-only, main manual-gated apply:** PR runs fmt/lint/validate/plan; `main` runs plan + **manual** `apply`.
+- **Feature-flag modules:** `enable_*` booleans with `for_each` (e.g., `enable_alb`, `enable_rds`) to add/remove stacks safely.
 
 ---
 
@@ -24,9 +30,9 @@ A minimal, interview-ready Infrastructure-as-Code project that demonstrates **Gi
 - [Cost & Networking Notes](#cost--networking-notes)
 - [Operate / Toggle / Clean Up](#operate--toggle--clean-up)
 - [Troubleshooting](#troubleshooting)
-- [Interview Talking Points](#interview-talking-points)
+- [Design Rationale & Trade-offs](#design-rationale--trade-offs))
 - [Keep terraform-docs away from this README](#keep-terraform-docs-away-from-this-readme)
-- [License](#license)
+
 
 ---
 
@@ -215,13 +221,38 @@ PR plan is read-only (no lock). `main` plan captures the exact changes and produ
 
 ---
 
-## Interview Talking Points
+## Design Rationale & Trade-offs
 
-- **OIDC vs static keys:** no rotations, least privilege per workflow, auditable trust policy, short-lived creds.
-- **State & locks:** S3 + DynamoDB prevents concurrent mutations; PR plan avoids locking (read-only).
-- **Least-privilege journey:** start service-scoped to move fast; converge to **resource ARNs** once URNs are stable.
-- **Network model:** ALB→EC2 (80), EC2→RDS (3306), SG→SG, no public RDS.
-- **Safety controls:** branch protection, required checks, environment approvals, apply from saved `plan.out`.
+- **Identity & CI/CD**
+  GitHub OIDC (no long-lived keys). PR uses a read-only role for `fmt/lint/plan`; `main` runs `plan` + manual-gated `apply`.
+
+- **Remote state & locking**
+  S3 backend + DynamoDB lock to avoid concurrent writes; server-side encryption; state kept per-env.
+
+- **Networking & access**
+  ALB in public subnets; EC2 in private; RDS `publicly_accessible=false`. EC2 ingress only from ALB SG; RDS ingress only from EC2 SG (SG→SG).
+
+- **Ops posture**
+  SSM Session Manager (no SSH keys or inbound 22). User-data installs Nginx for health checks.
+
+- **Cost vs reliability**
+  Lab uses single NAT (keep bills low). In production, recommend 1 NAT per AZ and multi-AZ RDS.
+
+- **Least privilege path**
+  Start with admin-like service scopes to bootstrap → then converge to resource-level ARNs (IAM policy versions reviewed via CI).
+
+- **Structure**
+  `modules/` (vpc, ec2, alb, rds, iam) + `envs/dev` composition. Feature-flag style `enable_*` with `for_each` to create/destroy via PRs.
+
+### What reviewers can verify quickly
+
+- OIDC trust policy matches `repo:ORG/REPO:*` scopes（PR vs main 区分）
+- S3 backend has bucket+lock table; state not in repo
+- RDS not public; Security Groups are SG→SG, no `0.0.0.0/0` to DB
+- EC2 has SSM role/profile; no SSH key pair in TF
+- ALB → TargetGroup → Instance attachment OK；listener forwards 80
+- CI 按 PR/MAIN 分离，`apply` 需手动批准；policy 限到所需服务/资源
+
 
 ---
 
