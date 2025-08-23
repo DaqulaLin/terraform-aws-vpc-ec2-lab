@@ -92,9 +92,11 @@ data "aws_iam_policy_document" "plan_policy" {
     resources = ["*"]
   }
   statement {
-    sid       = "RDSReadOnly"
-    effect    = "Allow"
-    actions   = ["rds:Describe*"]
+    sid    = "RDSReadOnly"
+    effect = "Allow"
+    actions = ["rds:Describe*",
+      "rds:ListTagsForResource"
+    ]
     resources = ["*"]
   }
 }
