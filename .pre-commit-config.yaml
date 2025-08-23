@@ -27,10 +27,11 @@ repos:
         pass_filenames: false
 
       - id: terraform-docs
-        name: terraform-docs (inject)
-        entry: terraform-docs .
+        name: terraform-docs (inject modules only )
+        entry: terraform-docs --config .terraform-docs.yml .
         language: system
         pass_filenames: false
+        files: ^modules/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
