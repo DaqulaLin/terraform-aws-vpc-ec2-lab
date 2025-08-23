@@ -27,7 +27,7 @@ module "iam_gha_oidc" {
   github_org            = "DaqulaLin"
   github_repo           = "terraform-aws-vpc-ec2-lab"
   region                = var.region
-  state_bucket_name     = "tfstate-160885250897-dev-1833551180"
+  state_bucket_name     = "my-terraform-state-daqula"
   state_lock_table_name = "tf-locks"
 
 
