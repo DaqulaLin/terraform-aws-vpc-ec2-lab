@@ -9,7 +9,7 @@ A minimal, interview-ready Infrastructure-as-Code project that demonstrates **Gi
 ---
 
 
-> A minimal, production-like IaC lab for AWS. GitHub Actions OIDC (no long-lived keys), remote state with locking, least-privilege CI/CD, and switchable modules.
+> Lean, production-oriented Terraform on AWS. GitHub Actions OIDC (no long-lived keys), remote state with locking, least-privilege CI/CD, and switchable modules.
 
 ### Highlights
 - **OIDC (no long-lived keys):** GitHub Actions assumes AWS roles via OIDC (separate plan/apply roles).
