@@ -1,4 +1,4 @@
-bucket         = "tfstate-160885250897-dev-1833551180"
+bucket         = "my-terraform-state-daqula"
 dynamodb_table = "tf-locks"
-key            = "project1/dev/terraform.tfstate"
+key            = "dev/terraform.tfstate"
 region         = "us-east-1"
