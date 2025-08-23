@@ -1,6 +1,6 @@
-output "vpc_id" { value = module.vpc.vpc_id }
-output "public_subnet_ids" { value = module.vpc.public_subnet_ids }
-output "private_subnet_ids" { value = module.vpc.private_subnet_ids }
+output "vpc_id" { value = var.enable_vpc ? module.vpc["main"].vpc_id : null }
+output "public_subnet_ids" { value = var.enable_vpc ? module.vpc["main"].public_subnet_ids : null }
+output "private_subnet_ids" { value = var.enable_vpc ? module.vpc["main"].private_subnet_ids : null }
 output "ec2_public_ip" { value = var.enable_ec2 ? module.ec2["main"].public_ip : null }
 
 

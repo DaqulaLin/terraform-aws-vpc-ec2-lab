@@ -31,6 +31,10 @@ variable "ami_id" {
 variable "rds_password" { type = string }
 
 
+variable "enable_vpc" {
+  type    = bool
+  default = false
+}
 
 
 variable "enable_ec2" {
