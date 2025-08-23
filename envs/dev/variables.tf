@@ -32,6 +32,14 @@ variable "rds_password" { type = string }
 
 
 
+
+variable "enable_ec2" {
+  type        = bool
+  default     = false
+  description = "Whether to create the single EC2"
+}
+
+
 variable "enable_alb" {
   type    = bool
   default = false

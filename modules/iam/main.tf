@@ -182,6 +182,7 @@ data "aws_iam_policy_document" "apply_policy_mvp" {
     effect = "Allow"
     actions = [
       "ec2:*",
+      "vpc:*",
       "elasticloadbalancing:*",
       "rds:*",
       # 如你的模块里有创建/绑定 Instance Profile 或 Log Group，可保留以下几类：

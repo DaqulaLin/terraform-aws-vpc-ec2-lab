@@ -1,7 +1,7 @@
 output "vpc_id" { value = module.vpc.vpc_id }
 output "public_subnet_ids" { value = module.vpc.public_subnet_ids }
 output "private_subnet_ids" { value = module.vpc.private_subnet_ids }
-output "ec2_public_ip" { value = module.ec2.public_ip }
+output "ec2_public_ip" { value = var.enable_ec2 ? module.ec2["main"].public_ip : null }
 
 
 output "plan_role_arn" {
